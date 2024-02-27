@@ -1,0 +1,45 @@
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Alms.BLL.Interfaces;
+using Alms.DAL.DbModels;
+using Alms.DAL.Repository;
+using Alms.DAL.ViewModels;
+using Serilog;
+
+namespace Alms.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BooksController : BaseApiController<BooksController>
+    {
+        public IBooksService _booksService { get; }
+        public IMapper _mapper { get; }
+
+        public BooksController(ILogger<BooksController> logger, IBooksService booksService, IMapper mapper) : base(logger)
+        {
+            _booksService = booksService;
+            _mapper = mapper;
+        }
+
+        /// <summary>
+        /// Get all the data form Books table
+        /// </summary>
+        /// <returns>Returns json object of all books data (Response Model)</returns>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<VMBook>>> GetBooks()
+        {
+            var books = await _booksService.GetAllAsync();
+
+            if (books == null)
+            {
+                return NotFound(new Response<IEnumerable<VMBook>>(MESSAGE.DATA_NOT_FOUND, false));
+            }
+
+            //throw new Exception("Custom exception : Test");
+
+            Log.Information("\n \n Books data : {@books}", books);
+            return Ok(new Response<IEnumerable<Book>>(books, true, MESSAGE.LOADED));
+        }
+    }
+}
